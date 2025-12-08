@@ -1,184 +1,84 @@
-# @file .github/workflows/build-apk.yml
-# @brief Production-ready GitHub Actions workflow with comprehensive error handling
-# @author Chatly Development Team
-# @date 2025-12-08
-#
-# This workflow has been completely refactored to fix all known issues including:
-# - Deprecated actions version (v3 → v4)
-# - Missing permissions configuration
-# - Secret handling improvements
-# - Comprehensive error handling and debugging
-# - Environment variable validation
-# - Build artifact management
+name: chatly
+description: Smart, Private & Anonymous Chat App
+version: 1.0.0+1
+publish_to: 'none'
 
-name: Build and Release APK
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.19.0'
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  
+  # Firebase Core - Updated versions
+  firebase_core: ^3.3.0
+  firebase_auth: ^5.1.4
+  cloud_firestore: ^5.3.1
+  firebase_messaging: ^16.0.4
+  firebase_analytics: ^12.0.4
+  firebase_crashlytics: ^5.0.5
+  
+  # UI & Design
+  google_fonts: ^6.3.3
+  lottie: ^3.3.2
+  shimmer: ^3.0.0
+  animated_text_kit: ^4.3.0
+  flutter_svg: ^2.2.3
+  
+  # State Management
+  provider: ^6.1.5
+  riverpod: ^3.0.3
+  state_notifier: ^1.0.0
+  
+  # Utilities
+  shared_preferences: ^2.5.3
+  url_launcher: ^6.3.2
+  connectivity_plus: ^7.0.0
+  intl: ^0.20.2
+  uuid: ^4.5.2
+  crypto: ^3.0.7
+  permission_handler: ^12.0.1
+  dio: ^5.9.0
+  http_mock_adapter: ^0.6.1
+  form_field_validator: ^1.1.0
+  
+  # Form Validation
+  form_field_validator: ^1.1.0
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: read
-      packages: read
-      id-token: write
-      security-events: write
-      issues: write
-      pull-requests: write
-      deployments: write
-      repository-projects: write
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  mockito: ^5.6.1
+
+flutter:
+  generate: true
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/fonts/
+    - assets/illustrations/
+    - assets/wallpapers/
+  
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Roboto/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto/Roboto-Light.ttf
+          weight: 300
     
-    env:
-      FLUTTER_VERSION: '3.19.0'
-      JAVA_VERSION: '17'
-      # Only set these if secrets exist, otherwise use safe defaults
-      FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY || 'not_set' }}
-      FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY || 'not_set' }}
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Validate secrets
-      run: |
-        echo "Checking required secrets..."
-        if [ "$FIREBASE_ANDROID_API_KEY" == "not_set" ]; then
-          echo "::warning::FIREBASE_ANDROID_API_KEY secret is not set. Build will proceed but Firebase features may not work."
-        fi
-        if [ "$FIREBASE_IOS_API_KEY" == "not_set" ]; then
-          echo "::warning::FIREBASE_IOS_API_KEY secret is not set. Build will proceed but Firebase features may not work."
-        fi
-      shell: bash
-    
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-    
-    - name: Setup Java
-      uses: actions/setup-java@v3
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-    
-    - name: Get Flutter version info
-      run: flutter --version
-    
-    - name: Get dependencies
-      run: flutter pub get
-    
-    - name: Run tests
-      run: flutter test --coverage
-      continue-on-error: true
-      if: github.event_name == 'pull_request'
-    
-    - name: Check formatting
-      run: dart format --output=none --set-exit-if-changed .
-      continue-on-error: true
-    
-    - name: Analyze code
-      run: flutter analyze
-      continue-on-error: true
-    
-    - name: Build APK
-      id: build_apk
-      run: |
-        echo "Starting APK build..."
-        flutter build apk --release --target-platform android-arm64
-        echo "APK build completed successfully"
-        # Get APK size for reporting
-        APK_SIZE=$(du -h build/app/outputs/flutter-apk/app-release.apk | cut -f1)
-        echo "APK_SIZE=$APK_SIZE" >> $GITHUB_ENV
-        echo "APK_PATH=build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_ENV
-      env:
-        FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
-        FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
-    
-    - name: Verify APK was built
-      run: |
-        if [ ! -f "$APK_PATH" ]; then
-          echo "::error::APK file was not created at expected path: $APK_PATH"
-          ls -la build/app/outputs/flutter-apk/
-          exit 1
-        fi
-        echo "APK file verified at: $APK_PATH"
-        echo "File size: $APK_SIZE"
-    
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: chatly-release-${{ github.sha }}
-        path: ${{ env.APK_PATH }}
-        retention-days: 30
-    
-    - name: Create Release
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && success()
-      uses: softprops/action-gh-release@v2
-      with:
-        files: ${{ env.APK_PATH }}
-        name: Chatly v${{ github.sha }}
-        tag_name: v${{ github.sha }}
-        body: |
-          🚀 **New Chatly Release**
-          
-          **Build Information:**
-          - Commit: ${{ github.sha }}
-          - Built on: ${{ github.event.head_commit.timestamp }}
-          - APK Size: ${{ env.APK_SIZE }}
-          
-          **Features:**
-          - Smart notifications
-          - Anonymous chat
-          - End-to-end encryption
-          - Premium subscription tiers
-          
-          **Installation:**
-          Download the APK and install directly on your Android device
-          
-          **Note:** This is an automated release. Please report any issues through GitHub Issues.
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Post build summary
-      if: always()
-      run: |
-        echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
-        echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Branch**: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-        if [ -f "$APK_PATH" ]; then
-          echo "- **APK Size**: $APK_SIZE" >> $GITHUB_STEP_SUMMARY
-          echo "- **APK Path**: $APK_PATH" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- **APK Status**: ❌ Not built" >> $GITHUB_STEP_SUMMARY
-        fi
-        echo "- **Flutter Version**: ${{ env.FLUTTER_VERSION }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Java Version**: ${{ env.JAVA_VERSION }}" >> $GITHUB_STEP_SUMMARY
-    
-    - name: Debug directory structure
-      run: |
-        echo "=== Current directory ==="
-        pwd
-        echo "=== Project structure ==="
-        ls -la
-        echo "=== lib directory ==="
-        ls -la lib/
-        echo "=== lib/l10n directory ==="
-        if [ -d "lib/l10n" ]; then
-          ls -la lib/l10n/
-        else
-          echo "ERROR: lib/l10n directory does not exist!"
-        fi
-        echo "=== l10n.yaml content ==="
-        cat l10n.yaml || echo "l10n.yaml not found"
+    - family: Montserrat
+      fonts:
+        - asset: assets/fonts/Montserrat/Montserrat-Regular.ttf
+        - asset: assets/fonts/Montserrat/Montserrat-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Montserrat/Montserrat-SemiBold.ttf
+          weight: 600
