@@ -17,7 +17,6 @@ import 'package:chatly/core/utils/handlers/toast_handler.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:revenuecat/revenuecat.dart';
 
 class SubscriptionService {
   static final SubscriptionService _instance = SubscriptionService._internal();
