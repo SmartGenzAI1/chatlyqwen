@@ -1,7 +1,4 @@
 
-### 6. **Critical Security Files**
-**`SECURITY.md` content:**
-```markdown
 # Security Policy
 
 ## Supported Versions
