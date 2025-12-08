@@ -166,74 +166,19 @@ jobs:
         echo "- **Flutter Version**: ${{ env.FLUTTER_VERSION }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Java Version**: ${{ env.JAVA_VERSION }}" >> $GITHUB_STEP_SUMMARY
     
-    - name: Notify on failure
-      if: failure()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const issueTitle = `Build Failed: ${process.env.GITHUB_SHA.substring(0, 8)}`;
-          const issueBody = `
-          **Build failed for commit:** ${process.env.GITHUB_SHA}
-          **Branch:** ${process.env.GITHUB_REF}
-          **Workflow:** ${process.env.GITHUB_WORKFLOW}
-          
-          **Error Details:**
-          - Check the workflow logs for detailed error messages
-          - Common issues include missing secrets, dependency problems, or code errors
-          
-          **Next Steps:**
-          1. Review the workflow logs
-          2. Check for missing secrets in repository settings
-          3. Verify all dependencies are correctly specified
-          4. Run tests locally before pushing changes
-          
-          **Debugging Commands:**
-          \`\`\`bash
-          flutter pub get
-          flutter analyze
-          flutter build apk --release
-          \`\`\`
-          
-          **Build Logs:** https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}
-          `;
-          
-          // Check if issue already exists
-          const issues = await github.rest.issues.listForRepo({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            state: 'open',
-            labels: ['build-failure']
-          });
-          
-          const existingIssue = issues.data.find(issue => 
-            issue.title.includes(process.env.GITHUB_SHA.substring(0, 8))
-          );
-          
-          if (!existingIssue) {
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: issueTitle,
-              body: issueBody,
-              labels: ['build-failure', 'automated-issue']
-            });
-            console.log('Created new issue for build failure');
-          } else {
-            console.log('Issue already exists for this build failure');
-            
-            - name: Debug directory structure
-     run: |
-    echo "=== Current directory ==="
-    pwd
-    echo "=== Project structure ==="
-    ls -la
-    echo "=== lib directory ==="
-    ls -la lib/
-    echo "=== lib/l10n directory ==="
-    if [ -d "lib/l10n" ]; then
-      ls -la lib/l10n/
-    else
-      echo "ERROR: lib/l10n directory does not exist!"
-    fi
-    echo "=== l10n.yaml content ==="
-    cat l10n.yaml || echo "l10n.yaml not found"
+    - name: Debug directory structure
+      run: |
+        echo "=== Current directory ==="
+        pwd
+        echo "=== Project structure ==="
+        ls -la
+        echo "=== lib directory ==="
+        ls -la lib/
+        echo "=== lib/l10n directory ==="
+        if [ -d "lib/l10n" ]; then
+          ls -la lib/l10n/
+        else
+          echo "ERROR: lib/l10n directory does not exist!"
+        fi
+        echo "=== l10n.yaml content ==="
+        cat l10n.yaml || echo "l10n.yaml not found"
