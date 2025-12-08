@@ -1,7 +1,4 @@
 
-
-**README.md**
-```markdown
 # 🚀 Chatly - Smart, Private & Anonymous Chat App
 
 <div align="center">
