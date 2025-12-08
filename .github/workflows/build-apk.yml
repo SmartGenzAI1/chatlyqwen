@@ -21,6 +21,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+      id-token: write
+      security-events: write
+      issues: write
+      pull-requests: write
+      deployments: write
+      repository-projects: write
     
     steps:
     - name: Checkout code
