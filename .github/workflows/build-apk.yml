@@ -220,4 +220,20 @@ jobs:
             console.log('Created new issue for build failure');
           } else {
             console.log('Issue already exists for this build failure');
-          }
+            
+            - name: Debug directory structure
+     run: |
+    echo "=== Current directory ==="
+    pwd
+    echo "=== Project structure ==="
+    ls -la
+    echo "=== lib directory ==="
+    ls -la lib/
+    echo "=== lib/l10n directory ==="
+    if [ -d "lib/l10n" ]; then
+      ls -la lib/l10n/
+    else
+      echo "ERROR: lib/l10n directory does not exist!"
+    fi
+    echo "=== l10n.yaml content ==="
+    cat l10n.yaml || echo "l10n.yaml not found"
