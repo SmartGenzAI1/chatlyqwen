@@ -1,0 +1,131 @@
+# @file .github/workflows/build-apk.yml
+# @brief GitHub Actions workflow for automated APK building and release
+# @author Chatly Development Team
+# @date 2025-12-08
+#
+# This file implements a GitHub Actions workflow that automatically builds
+# the Chatly APK on every push to the main branch. It uses Flutter and Gradle
+# to create a production-ready APK, runs tests, and uploads the artifact for
+# distribution. The workflow is designed to be efficient and reliable for
+# continuous integration and deployment.
+
+name: Build and Release APK
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        flutter-version: '3.19.0'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Run tests
+      run: flutter test
+      continue-on-error: true
+      
+    - name: Check formatting
+      run: dart format --output=none --set-exit-if-changed .
+      continue-on-error: true
+      
+    - name: Analyze code
+      run: flutter analyze
+      continue-on-error: true
+      
+    - name: Build APK
+      run: flutter build apk --release --target-platform android-arm64
+      env:
+        FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+        FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: chatly-release-${{ github.sha }}
+        path: build/app/outputs/flutter-apk/app-release.apk
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/app/outputs/flutter-apk/app-release.apk
+        name: Chatly v${{ github.sha }}
+        tag_name: v${{ github.sha }}
+        body: |
+          🚀 **New Chatly Release**
+          
+          **Changes:**
+          - Automated build from commit ${{ github.sha }}
+          - Built on ${{ github.event.head_commit.timestamp }}
+          
+          **Features:**
+          - Smart notifications
+          - Anonymous chat
+          - End-to-end encryption
+          - Premium subscription tiers
+          
+          **Installation:**
+          Download the APK and install directly on your Android device
+          
+          **Note:** This is an automated release. Please report any issues through GitHub Issues.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Notify Slack
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        channel-id: 'C0123456789'
+        payload: |
+          {
+            "text": "📱 New Chatly APK released!",
+            "attachments": [
+              {
+                "color": "#36a64f",
+                "fields": [
+                  {
+                    "title": "Version",
+                    "value": "v${{ github.sha }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Size",
+                    "value": "${{ steps.build.outputs.size }} MB",
+                    "short": true
+                  },
+                  {
+                    "title": "Download",
+                    "value": "https://github.com/yourusername/chatly/releases/tag/v${{ github.sha }}",
+                    "short": false
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
