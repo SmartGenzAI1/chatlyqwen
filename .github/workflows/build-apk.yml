@@ -5,7 +5,94 @@
 #
 # This workflow builds the Chatly APK automatically on push to main branch.
 # It includes comprehensive error handling, permission fixes, and debugging tools.
+- name: Migrate Android project to v2 embedding
+  run: |
+    echo "Migrating Android project to v2 embedding..."
+    
+    # Update AndroidManifest.xml
+    cat << 'EOF' > android/app/src/main/AndroidManifest.xml<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.chatly.app">
+    
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    
+    <application
+        android:name="${applicationName}"
+        android:label="Chatly"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:enableOnBackInvokedCallback="true"
+        android:allowBackup="false"
+        android:theme="@style/LaunchTheme">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"/>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2"/>
+            
+        <service
+            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        
+    </application>
+</manifest>
+EOF
 
+    # Update MainActivity.java
+    mkdir -p android/app/src/main/java/com/chatly/app
+    cat << 'EOF' > android/app/src/main/java/com/chatly/app/MainActivity.java
+package com.chatly.app;
+
+import android.os.Bundle;
+import io.flutter.embedding.android.FlutterFragmentActivity;
+import io.flutter.embedding.engine.FlutterEngine;
+import io.flutter.plugins.GeneratedPluginRegistrant;
+
+public class MainActivity extends FlutterFragmentActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void configureFlutterEngine(FlutterEngine flutterEngine) {
+        super.configureFlutterEngine(flutterEngine);
+        GeneratedPluginRegistrant.registerWith(flutterEngine);
+    }
+}
+EOF
+
+    # Add flutterEmbedding to build.gradle
+    sed -i '/defaultConfig {/a\        manifestPlaceholders = [\n            flutterEmbedding: "2"\n        ]' android/app/build.gradle
+
+    echo "Android v2 embedding migration complete!" 
+    
 name: Build and Release APK
 
 on:
