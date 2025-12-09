@@ -1,11 +1,4 @@
 # @file .github/workflows/build-apk.yml
-# @brief Production-ready GitHub Actions workflow for building Chatly APK
-# @author Chatly Development Team
-# @date 2025-12-09
-#
-# This workflow builds the Chatly APK automatically on push to main branch.
-# It includes comprehensive error handling, permission fixes, and debugging tools.
-
 name: Build and Release APK
 
 on:
@@ -43,11 +36,15 @@ jobs:
         
     - name: Migrate Android project to v2 embedding
       run: |
-        echo "Migrating Android project to v2 embedding..."
+        echo "Creating essential Android files..."
         
-        # Update AndroidManifest.xml
+        # Create directory structure
         mkdir -p android/app/src/main
-        cat << 'EOF' > android/app/src/main/AndroidManifest.xml
+        mkdir -p android/app/src/main/java/com/chatly/app
+        mkdir -p android/app/src/main/res/values
+        
+        # Create AndroidManifest.xml
+        cat > android/app/src/main/AndroidManifest.xml << 'EOF'
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.chatly.app">
     
@@ -102,9 +99,8 @@ jobs:
 </manifest>
 EOF
 
-        # Update MainActivity.java
-        mkdir -p android/app/src/main/java/com/chatly/app
-        cat << 'EOF' > android/app/src/main/java/com/chatly/app/MainActivity.java
+        # Create MainActivity.java
+        cat > android/app/src/main/java/com/chatly/app/MainActivity.java << 'EOF'
 package com.chatly.app;
 
 import android.os.Bundle;
@@ -126,15 +122,92 @@ public class MainActivity extends FlutterFragmentActivity {
 }
 EOF
 
-        # Add flutterEmbedding to build.gradle
-        mkdir -p android/app
-        echo "android {" > android/app/build.gradle
-        echo "    defaultConfig {" >> android/app/build.gradle
-        echo "        manifestPlaceholders = [" >> android/app/build.gradle
-        echo "            flutterEmbedding: \"2\"" >> android/app/build.gradle
-        echo "        ]" >> android/app/build.gradle
-        echo "    }" >> android/app/build.gradle
-        echo "}" >> android/app/build.gradle
+        # Create styles.xml
+        mkdir -p android/app/src/main/res/values
+        cat > android/app/src/main/res/values/styles.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>
+EOF
+
+        # Create build.gradle with proper content
+        cat > android/app/build.gradle << 'EOF'
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterRoot = localProperties.getProperty('flutter.sdk')
+if (flutterRoot == null) {
+    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
+android {
+    compileSdkVersion 34
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        applicationId "com.chatly.app"
+        minSdkVersion 24
+        targetSdkVersion 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+        manifestPlaceholders = [
+            flutterEmbedding: "2"
+        ]
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+EOF
 
         echo "Android v2 embedding migration complete!"
     
