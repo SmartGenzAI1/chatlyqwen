@@ -37,11 +37,8 @@
         </activity>
         
         <meta-data
-            android:name="firebase_analytics_collection_enabled"
-            android:value="true"/>
-        <meta-data
-            android:name="firebase_crashlytics_collection_enabled"
-            android:value="true"/>
+            android:name="flutterEmbedding"
+            android:value="2"/>
             
         <service
             android:name="com.google.firebase.messaging.FirebaseMessagingService"
