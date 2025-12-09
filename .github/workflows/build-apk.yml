@@ -47,7 +47,7 @@ jobs:
         
         # Update AndroidManifest.xml
         mkdir -p android/app/src/main
-        cat << 'EOF' > android/app/src/main/AndroidManifest.xml
+        cat > android/app/src/main/AndroidManifest.xml << 'EOF'
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.chatly.app">
     
@@ -104,7 +104,7 @@ EOF
 
         # Update MainActivity.java
         mkdir -p android/app/src/main/java/com/chatly/app
-        cat << 'EOF' > android/app/src/main/java/com/chatly/app/MainActivity.java
+        cat > android/app/src/main/java/com/chatly/app/MainActivity.java << 'EOF'
 package com.chatly.app;
 
 import android.os.Bundle;
@@ -128,13 +128,15 @@ EOF
 
         # Add flutterEmbedding to build.gradle
         mkdir -p android/app
-        echo "android {" > android/app/build.gradle
-        echo "    defaultConfig {" >> android/app/build.gradle
-        echo "        manifestPlaceholders = [" >> android/app/build.gradle
-        echo "            flutterEmbedding: \"2\"" >> android/app/build.gradle
-        echo "        ]" >> android/app/build.gradle
-        echo "    }" >> android/app/build.gradle
-        echo "}" >> android/app/build.gradle
+        cat > android/app/build.gradle << 'EOF'
+android {
+    defaultConfig {
+        manifestPlaceholders = [
+            flutterEmbedding: "2"
+        ]
+    }
+}
+EOF
 
         echo "Android v2 embedding migration complete!"
     
@@ -147,7 +149,6 @@ EOF
         if [ "$FIREBASE_IOS_API_KEY" == "not_set" ]; then
           echo "::warning::FIREBASE_IOS_API_KEY secret is not set. Build will proceed but Firebase features may not work."
         fi
-      shell: bash
     
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
