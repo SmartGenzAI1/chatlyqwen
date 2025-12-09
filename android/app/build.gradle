@@ -1,17 +1,8 @@
 android {
-    compileSdkVersion 34
-    ndkVersion flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
     defaultConfig {
-        applicationId "com.chatly.app"
-        minSdkVersion 24
-        targetSdkVersion 34
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        // ... existing config ...
+        manifestPlaceholders = [
+            flutterEmbedding: "2"
+        ]
     }
 }
