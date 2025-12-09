@@ -5,12 +5,50 @@
 #
 # This workflow builds the Chatly APK automatically on push to main branch.
 # It includes comprehensive error handling, permission fixes, and debugging tools.
-- name: Migrate Android project to v2 embedding
-  run: |
-    echo "Migrating Android project to v2 embedding..."
+
+name: Build and Release APK
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      packages: read
+      id-token: write
+      security-events: write
+      issues: write
+      pull-requests: write
+      deployments: write
+      repository-projects: write
     
-    # Update AndroidManifest.xml
-    cat << 'EOF' > android/app/src/main/AndroidManifest.xml<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    env:
+      FLUTTER_VERSION: '3.22.0'
+      JAVA_VERSION: '17'
+      FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY || 'not_set' }}
+      FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY || 'not_set' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Migrate Android project to v2 embedding
+      run: |
+        echo "Migrating Android project to v2 embedding..."
+        
+        # Update AndroidManifest.xml
+        mkdir -p android/app/src/main
+        cat << 'EOF' > android/app/src/main/AndroidManifest.xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.chatly.app">
     
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -64,9 +102,9 @@
 </manifest>
 EOF
 
-    # Update MainActivity.java
-    mkdir -p android/app/src/main/java/com/chatly/app
-    cat << 'EOF' > android/app/src/main/java/com/chatly/app/MainActivity.java
+        # Update MainActivity.java
+        mkdir -p android/app/src/main/java/com/chatly/app
+        cat << 'EOF' > android/app/src/main/java/com/chatly/app/MainActivity.java
 package com.chatly.app;
 
 import android.os.Bundle;
@@ -88,46 +126,18 @@ public class MainActivity extends FlutterFragmentActivity {
 }
 EOF
 
-    # Add flutterEmbedding to build.gradle
-    sed -i '/defaultConfig {/a\        manifestPlaceholders = [\n            flutterEmbedding: "2"\n        ]' android/app/build.gradle
+        # Add flutterEmbedding to build.gradle
+        mkdir -p android/app
+        echo "android {" > android/app/build.gradle
+        echo "    defaultConfig {" >> android/app/build.gradle
+        echo "        manifestPlaceholders = [" >> android/app/build.gradle
+        echo "            flutterEmbedding: \"2\"" >> android/app/build.gradle
+        echo "        ]" >> android/app/build.gradle
+        echo "    }" >> android/app/build.gradle
+        echo "}" >> android/app/build.gradle
 
-    echo "Android v2 embedding migration complete!" 
+        echo "Android v2 embedding migration complete!"
     
-name: Build and Release APK
-
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: read
-      packages: read
-      id-token: write
-      security-events: write
-      issues: write
-      pull-requests: write
-      deployments: write
-      repository-projects: write
-    
-    env:
-      FLUTTER_VERSION: '3.22.0'
-      JAVA_VERSION: '17'
-      FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY || 'not_set' }}
-      FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY || 'not_set' }}
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
     - name: Validate secrets
       run: |
         echo "Checking required secrets..."
