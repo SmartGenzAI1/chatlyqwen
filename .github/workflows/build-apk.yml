@@ -47,8 +47,9 @@ jobs:
         
         # Update AndroidManifest.xml
         mkdir -p android/app/src/main
-        cat << 'EOF' > android/app/src/main/AndroidManifest.xml<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.chatly.app">
+        cat << 'EOF' > android/app/src/main/AndroidManifest.xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.chatly.app">
     
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
