@@ -18,14 +18,5 @@ jobs:
       with:
         flutter-version: '3.22.0'
     
-    - name: Get dependencies
-      run: flutter pub get
-    
     - name: Build APK
       run: flutter build apk --release
-    
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: chatly-release
-        path: build/app/outputs/flutter-apk/app-release.apk
