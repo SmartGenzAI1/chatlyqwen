@@ -77,4 +77,3 @@ EOF
       with:
         name: chatly-release
         path: build/app/outputs/flutter-apk/app-release.apk
-        retention-days: 30
