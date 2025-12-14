@@ -1,17 +1,80 @@
-# @file .github/workflows/build-apk.yml
 name: Build APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: write
+    
     steps:
-    - uses: actions/checkout@v4
-    - uses: subosito/flutter-action@v2
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.22.0'
-    - run: flutter build apk --release
+    
+    - name: Create Android files for v2 embedding
+      run: |
+        mkdir -p android/app/src/main
+        mkdir -p android/app/src/main/java/com/chatly/app
+        
+        # Create AndroidManifest.xml
+        cat > android/app/src/main/AndroidManifest.xml << 'EOF'
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.chatly.app">
+    
+    <application
+        android:name="${applicationName}"
+        android:label="Chatly"
+        android:icon="@mipmap/ic_launcher">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.Black.NoTitleBar">
+            
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2"/>
+        
+    </application>
+</manifest>
+EOF
+        
+        # Create MainActivity.java
+        cat > android/app/src/main/java/com/chatly/app/MainActivity.java << 'EOF'
+package com.chatly.app;
+
+import io.flutter.embedding.android.FlutterActivity;
+
+public class MainActivity extends FlutterActivity {
+}
+EOF
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Build APK
+      run: flutter build apk --release --target-platform android-arm64
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: chatly-release
+        path: build/app/outputs/flutter-apk/app-release.apk
+        retention-days: 30
