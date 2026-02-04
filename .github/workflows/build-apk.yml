@@ -1,4 +1,3 @@
-# @file .github/workflows/build-apk.yml
 name: Build APK
 
 on:
@@ -9,9 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    
     steps:
-    - uses: actions/checkout@v4
-    - uses: subosito/flutter-action@v2
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.22.0'
-    - run: flutter build apk --release
+    
+    - name: Build APK
+      run: flutter build apk --release
