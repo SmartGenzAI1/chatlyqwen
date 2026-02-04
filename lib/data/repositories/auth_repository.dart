@@ -182,9 +182,9 @@ class AuthRepository {
       await _firebaseDataSource.updateLastSeen(uid);
     } catch (e) {
       // Don't throw exception for this operation - it's not critical
-      if (FirebaseCore.instance.options.logLevel == Level.debug) {
-        print('Warning: Failed to update last seen timestamp: ${e.toString()}');
-      }
+      // if (FirebaseCore.instance.options.logLevel == Level.debug) {
+      //   print('Warning: Failed to update last seen timestamp: ${e.toString()}');
+      // }
     }
   }
   

@@ -15,11 +15,15 @@ import 'package:chatly/features/anonymous/presentation/screens/post_anonymous_sc
 import 'package:chatly/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:chatly/features/auth/presentation/screens/login_screen.dart';
 import 'package:chatly/features/auth/presentation/screens/signup_screen.dart';
+import 'package:chatly/features/auth/presentation/screens/username_setup_screen.dart';
 import 'package:chatly/features/auth/presentation/screens/verify_otp_screen.dart';
+import 'package:chatly/features/chat/presentation/screens/chat_list_screen.dart';
 import 'package:chatly/features/chat/presentation/screens/chat_screen.dart';
 import 'package:chatly/features/chat/presentation/screens/new_chat_screen.dart';
 import 'package:chatly/features/groups/presentation/screens/create_group_screen.dart';
 import 'package:chatly/features/groups/presentation/screens/groups_list_screen.dart';
+import 'package:chatly/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:chatly/features/onboarding/presentation/screens/splash_screen.dart';
 import 'package:chatly/features/premium/presentation/screens/premium_screen.dart';
 import 'package:chatly/features/settings/presentation/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
@@ -101,7 +105,6 @@ class RouteGenerator {
   static Route<dynamic> _buildRoute(Widget screen) {
     return MaterialPageRoute(
       builder: (context) => ErrorCatcher(child: screen),
-      settings: RouteSettings(name: ModalRoute.of(screen)?.settings.name),
     );
   }
   

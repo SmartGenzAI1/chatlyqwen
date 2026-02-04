@@ -592,7 +592,6 @@ class _PremiumScreenState extends State<PremiumScreen> with TickerProviderStateM
       backgroundColor: isCurrentTier
           ? theme.dividerColor
           : (_selectedPlanIndex == 0 ? ThemeConstants.plusGold : ThemeConstants.proDiamond),
-      icon: isCurrentTier ? Icons.check : Icons.payment,
       isLoading: false,
     );
   }

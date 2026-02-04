@@ -7,6 +7,8 @@
 /// in the Chatly application. It supports both 1-to-1 chats and group chats,
 /// with comprehensive properties for chat metadata, participants, and settings.
 
+import 'package:chatly/data/models/message_model.dart';
+import 'package:chatly/data/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
@@ -25,8 +27,9 @@ class ChatModel extends Equatable {
   final String? createdBy;
   final int maxParticipants;
   final bool isAnonymous;
+  final bool isEncrypted;
   final List<String> topicTags;
-  
+
   const ChatModel({
     required this.chatId,
     required this.participantIds,
@@ -45,6 +48,7 @@ class ChatModel extends Equatable {
     this.createdBy,
     this.maxParticipants = 25,
     this.isAnonymous = false,
+    this.isEncrypted = true,
     this.topicTags = const [],
   });
 
@@ -90,6 +94,7 @@ class ChatModel extends Equatable {
       'createdBy': createdBy,
       'maxParticipants': maxParticipants,
       'isAnonymous': isAnonymous,
+      'isEncrypted': isEncrypted,
       'topicTags': topicTags,
     };
   }

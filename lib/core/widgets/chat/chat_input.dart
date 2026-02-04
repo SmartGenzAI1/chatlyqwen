@@ -9,17 +9,20 @@
 /// handles keyboard management, message validation, and provides callbacks
 /// for message sending and typing events.
 
+import 'dart:async';
+
 import 'package:chatly/core/constants/app_constants.dart';
 import 'package:chatly/core/constants/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Optimized chat input widget that minimizes rebuilds and provides smooth UX
 class ChatInput extends StatefulWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
   final bool isSending;
   final Function(bool) onTyping;
-  
+
   const ChatInput({
     super.key,
     required this.controller,
@@ -36,7 +39,8 @@ class _ChatInputState extends State<ChatInput> with TickerProviderStateMixin {
   late AnimationController _sendAnimationController;
   FocusNode _focusNode = FocusNode();
   Timer? _typingTimer;
-  
+  final ValueNotifier<bool> _hasTextNotifier = ValueNotifier<bool>(false);
+
   @override
   void initState() {
     super.initState();
@@ -44,7 +48,10 @@ class _ChatInputState extends State<ChatInput> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    
+
+    // Initialize text state
+    _hasTextNotifier.value = widget.controller.text.trim().isNotEmpty;
+
     widget.controller.addListener(_handleTextChange);
     _focusNode.addListener(_handleFocusChange);
   }
@@ -56,20 +63,28 @@ class _ChatInputState extends State<ChatInput> with TickerProviderStateMixin {
     _focusNode.removeListener(_handleFocusChange);
     _focusNode.dispose();
     _typingTimer?.cancel();
+    _hasTextNotifier.dispose();
     super.dispose();
   }
   
   void _handleTextChange() {
-    // Clear any existing timer
+    final hasText = widget.controller.text.trim().isNotEmpty;
+
+    // Update notifier without triggering rebuilds
+    if (_hasTextNotifier.value != hasText) {
+      _hasTextNotifier.value = hasText;
+    }
+
+    // Clear any existing typing timer
     _typingTimer?.cancel();
-    
-    if (widget.controller.text.isNotEmpty) {
-      // Start typing indicator
+
+    if (hasText) {
+      // Start typing indicator with debouncing
       widget.onTyping(true);
-      
-      // Set timer to stop typing indicator after 3 seconds of inactivity
-      _typingTimer = Timer(const Duration(seconds: 3), () {
-        if (mounted && widget.controller.text.isNotEmpty) {
+
+      // Set timer to stop typing indicator after 2 seconds of inactivity (optimized)
+      _typingTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted && widget.controller.text.trim().isNotEmpty) {
           widget.onTyping(false);
         }
       });
@@ -156,36 +171,42 @@ class _ChatInputState extends State<ChatInput> with TickerProviderStateMixin {
                       color: theme.primaryColor.withOpacity(0.3),
                     ),
                   ),
-                  child: TextField(
-                    controller: widget.controller,
-                    focusNode: _focusNode,
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    minLines: 1,
-                    maxLength: 500,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message...',
-                      hintStyle: theme.textTheme.bodyMedium!.copyWith(
-                        color: theme.textTheme.bodyMedium!.color!.withOpacity(0.5),
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable: _hasTextNotifier,
+                    builder: (context, hasText, _) => TextField(
+                      controller: widget.controller,
+                      focusNode: _focusNode,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      minLines: 1,
+                      maxLength: 500,
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        hintStyle: theme.textTheme.bodyMedium!.copyWith(
+                          color: theme.textTheme.bodyMedium!.color!.withOpacity(0.5),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        suffixIcon: hasText
+                            ? IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => widget.controller.clear(),
+                                color: theme.textTheme.bodyMedium!.color!.withOpacity(0.5),
+                              )
+                            : null,
                       ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      suffixIcon: widget.controller.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () => widget.controller.clear(),
-                              color: theme.textTheme.bodyMedium!.color!.withOpacity(0.5),
-                            )
-                          : null,
+                      style: theme.textTheme.bodyLarge,
+                      onSubmitted: (_) => _handleSend(),
                     ),
-                    style: theme.textTheme.bodyLarge,
-                    onSubmitted: (_) => _handleSend(),
                   ),
                 ),
               ),
               
-              // Send button with animation
-              _buildSendButton(theme, screenSize),
+              // Send button with animation - only rebuild when text state changes
+              ValueListenableBuilder<bool>(
+                valueListenable: _hasTextNotifier,
+                builder: (context, hasText, _) => _buildSendButton(theme, screenSize, hasText),
+              ),
             ],
           ),
         ],
@@ -216,7 +237,7 @@ class _ChatInputState extends State<ChatInput> with TickerProviderStateMixin {
     );
   }
   
-  Widget _buildSendButton(ThemeData theme, Size screenSize) {
+  Widget _buildSendButton(ThemeData theme, Size screenSize, bool hasText) {
     return ScaleTransition(
       scale: _sendAnimationController,
       child: IconButton(
@@ -224,7 +245,7 @@ class _ChatInputState extends State<ChatInput> with TickerProviderStateMixin {
             ? const CircularProgressIndicator(strokeWidth: 2)
             : const Icon(Icons.send),
         onPressed: widget.isSending ? null : _handleSend,
-        color: widget.controller.text.isNotEmpty
+        color: hasText
             ? theme.primaryColor
             : theme.textTheme.bodyMedium!.color!.withOpacity(0.5),
         padding: const EdgeInsets.all(12),

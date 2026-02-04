@@ -39,13 +39,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.signInWithEmail(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
-    
+
     if (success) {
       Navigator.pushReplacementNamed(context, RouteConstants.home);
     } else {
@@ -68,11 +68,16 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.pushNamed(context, RouteConstants.verifyOTP);
   }
 
+  void _handleGoogleLogin() {
+    // TODO: Implement Google login
+    ToastHandler.showInfo(context, 'Google login coming soon');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -104,11 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Email field
                 CustomTextField(
                   controller: _emailController,
-                  label: 'Email',
+                  labelText: 'Email',
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -119,14 +124,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     return null;
                   },
-                  prefixIcon: Icons.email,
+                  prefixIcon: const Icon(Icons.email),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Password field
                 CustomTextField(
                   controller: _passwordController,
-                  label: 'Password',
+                  labelText: 'Password',
                   obscureText: _obscurePassword,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -137,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     return null;
                   },
-                  prefixIcon: Icons.lock,
+                  prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                     onPressed: () {
@@ -148,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Forgot password
                 Align(
                   alignment: Alignment.centerRight,
@@ -162,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                
+
                 // Error message
                 if (_errorMessage != null)
                   Padding(
@@ -175,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                
+
                 // Login button
                 CustomButton(
                   text: authProvider.isLoading ? 'Logging in...' : 'Log In',
@@ -183,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   isLoading: authProvider.isLoading,
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Or continue with
                 Row(
                   children: [
@@ -199,13 +204,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Social auth buttons
                 SocialAuthButtons(
+                  onGoogleLogin: _handleGoogleLogin,
                   onPhoneLogin: _handlePhoneLogin,
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Sign up option
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

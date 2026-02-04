@@ -206,24 +206,24 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   // Group name
                   CustomTextField(
                     controller: _nameController,
-                    label: 'Group Name',
+                    labelText: 'Group Name',
                     maxLength: 50,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Group name is required';
                       if (value.length < 3) return 'Name must be at least 3 characters';
                       return null;
                     },
-                    prefixIcon: Icons.group,
+                    prefixIcon: const Icon(Icons.group),
                   ),
                   const SizedBox(height: 16),
                   
                   // Group description
                   CustomTextField(
                     controller: _descriptionController,
-                    label: 'Description (optional)',
+                    labelText: 'Description (optional)',
                     maxLines: 3,
                     maxLength: 150,
-                    prefixIcon: Icons.description,
+                    prefixIcon: const Icon(Icons.description),
                   ),
                   const SizedBox(height: 24),
                   

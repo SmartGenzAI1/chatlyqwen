@@ -8,7 +8,28 @@
 /// It abstracts away the complexity of SharedPreferences and provides type-safe
 /// methods for storing and retrieving various data types.
 
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Extensions for SharedPreferences to handle complex types
+extension SharedPreferencesExtension on SharedPreferences {
+  Future<void> setStringMap(String key, Map<String, String> value) async {
+    await setString(key, json.encode(value));
+  }
+
+  Map<String, String>? getStringMap(String key) {
+    final jsonString = getString(key);
+    if (jsonString == null) return null;
+    try {
+      final decoded = json.decode(jsonString) as Map<String, dynamic>;
+      return decoded.map((key, value) => MapEntry(key, value.toString()));
+    } catch (e) {
+      return null;
+    }
+  }
+}
 
 class PreferenceHandler {
   static final PreferenceHandler _instance = PreferenceHandler._internal();
@@ -248,6 +269,27 @@ class PreferenceHandler {
   /// Clear all preferences (for logout or reset)
   Future<void> clearAllPreferences() async {
     await _prefs.clear();
+  }
+
+  /// Content Moderation
+  Future<void> saveLastToxicityWarning(DateTime date) async {
+    await _prefs.setString('last_toxicity_warning', date.toIso8601String());
+  }
+
+  Future<DateTime?> getLastToxicityWarning() async {
+    final dateString = _prefs.getString('last_toxicity_warning');
+    return dateString != null ? DateTime.parse(dateString) : null;
+  }
+
+  Future<void> logUserReport(String reportKey, DateTime date) async {
+    final reports = _prefs.getStringMap('user_reports') ?? {};
+    reports[reportKey] = date.toIso8601String();
+    await _prefs.setStringMap('user_reports', reports);
+  }
+
+  Future<bool> hasUserReported(String reportKey) async {
+    final reports = _prefs.getStringMap('user_reports') ?? {};
+    return reports.containsKey(reportKey);
   }
   
   /// TODO: Implement encrypted storage for sensitive data

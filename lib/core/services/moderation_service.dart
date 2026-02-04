@@ -11,9 +11,11 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:chatly/core/constants/app_constants.dart';
 import 'package:chatly/core/errors/exceptions.dart';
 import 'package:chatly/core/utils/handlers/preference_handler.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ModerationService {
@@ -271,22 +273,28 @@ class ModerationService {
   /// Get sanitized version of message with sensitive content masked
   String getSanitizedPreview(String message) {
     var preview = message;
-    
+
     // Mask phone numbers
     preview = preview.replaceAll(RegExp(r'\b\d{10}\b'), '**********');
-    
+
     // Mask email addresses
     preview = preview.replaceAll(RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'), '*****@*****.com');
-    
+
     // Mask URLs
     preview = preview.replaceAll(RegExp(r'https?://[^\s]+'), '[LINK]');
-    
+
     // Truncate long messages
     if (preview.length > 100) {
       preview = preview.substring(0, 97) + '...';
     }
-    
+
     return preview;
+  }
+
+  /// Dispose of resources
+  void dispose() {
+    // Clean up any resources if needed
+    debugPrint('🔧 ModerationService: Disposed');
   }
 
   /// TODO: Implement real-time moderation with WebSocket connection

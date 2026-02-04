@@ -18,14 +18,92 @@ import 'package:flutter/foundation.dart';
 
 class AlgorithmService {
   static final AlgorithmService _instance = AlgorithmService._internal();
-  late Random _random;
-  
+  late final Random _random;
+
+  // Performance optimization: Caches for expensive calculations
+  final Map<String, dynamic> _calculationCache = {};
+  final Map<String, DateTime> _cacheTimestamps = {};
+  static const Duration _cacheExpiry = Duration(minutes: 10);
+
   factory AlgorithmService() {
     return _instance;
   }
-  
+
   AlgorithmService._internal() {
-    _random = Random();
+    _random = Random.secure();
+  }
+
+  /// Performance: Get cached value or compute if expired/not exists
+  T _getCached<T>(String cacheKey, T Function() computeFunction) {
+    final cacheEntry = _calculationCache[cacheKey];
+    final timestamp = _cacheTimestamps[cacheKey];
+
+    if (cacheEntry != null && timestamp != null &&
+        DateTime.now().difference(timestamp) < _cacheExpiry) {
+      return cacheEntry as T;
+    }
+
+    // Compute and cache
+    final result = computeFunction();
+    _calculationCache[cacheKey] = result;
+    _cacheTimestamps[cacheKey] = DateTime.now();
+
+    // Clean old cache entries periodically
+    if (_calculationCache.length > 100) {
+      _cleanupCache();
+    }
+
+    return result;
+  }
+
+  /// Performance: Clear expired cache entries
+  void _cleanupCache() {
+    final now = DateTime.now();
+    final expiredKeys = <String>[];
+
+    _cacheTimestamps.forEach((key, timestamp) {
+      if (now.difference(timestamp) >= _cacheExpiry) {
+        expiredKeys.add(key);
+      }
+    });
+
+    for (final key in expiredKeys) {
+      _calculationCache.remove(key);
+      _cacheTimestamps.remove(key);
+    }
+  }
+
+  /// Performance: Clear all cache (useful for testing or memory management)
+  void clearCache() {
+    _calculationCache.clear();
+    _cacheTimestamps.clear();
+  }
+
+  /// Dispose and clear all resources
+  void dispose() {
+    clearCache();
+    debugPrint('🔧 AlgorithmService: Disposed and caches cleared');
+  }
+
+  /// Cleanup old cache entries to reduce memory usage
+  void _performMemoryCleanup() {
+    _cleanupCache();
+
+    // Additional aggressive cleanup if cache is still large
+    if (_calculationCache.length > 200) {
+      final sortedEntries = _cacheTimestamps.entries.toList()
+        ..sort((a, b) => a.value.compareTo(b.value));
+
+      // Remove oldest 30% of entries
+      final entriesToRemove = (sortedEntries.length * 0.3).ceil();
+      for (var i = 0; i < entriesToRemove && i < sortedEntries.length; i++) {
+        final key = sortedEntries[i].key;
+        _calculationCache.remove(key);
+        _cacheTimestamps.remove(key);
+      }
+
+      debugPrint('🔧 AlgorithmService: Aggressively cleaned up ${entriesToRemove} cache entries');
+    }
   }
 
   /// Smart notification timing algorithm

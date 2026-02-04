@@ -22,7 +22,7 @@ class UserModel extends Equatable {
   final Map<String, dynamic> limits;
   final Map<String, dynamic>? customTheme;
   final bool isAnonymous;
-  
+
   const UserModel({
     required this.uid,
     required this.email,
@@ -53,7 +53,7 @@ class UserModel extends Equatable {
   /// Create UserModel from Firestore document
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return UserModel(
       uid: doc.id,
       email: data['email'] ?? '',
@@ -64,7 +64,7 @@ class UserModel extends Equatable {
       lastSeen: (data['lastSeen'] as Timestamp).toDate(),
       settings: Map<String, dynamic>.from(data['settings'] ?? {}),
       limits: Map<String, dynamic>.from(data['limits'] ?? {}),
-      customTheme: data['customTheme'] != null 
+      customTheme: data['customTheme'] != null
           ? Map<String, dynamic>.from(data['customTheme'])
           : null,
       isAnonymous: data['isAnonymous'] ?? false,
@@ -119,23 +119,23 @@ class UserModel extends Equatable {
   /// Validate user data before saving
   List<String> validate() {
     final errors = <String>[];
-    
+
     if (username.isEmpty || username.length < 3 || username.length > 20) {
       errors.add('Username must be between 3-20 characters');
     }
-    
+
     if (!username.contains(RegExp(r'^[a-zA-Z0-9_]+$'))) {
       errors.add('Username can only contain letters, numbers, and underscores');
     }
-    
+
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       errors.add('Invalid email format');
     }
-    
+
     if (tier != 'free' && tier != 'plus' && tier != 'pro') {
       errors.add('Invalid tier specified');
     }
-    
+
     return errors;
   }
 
@@ -163,7 +163,7 @@ class UserModel extends Equatable {
   /// Get message retention days based on tier
   int getMessageRetentionDays() {
     if (tier == 'free') return 7;
-    
+
     try {
       return int.parse(settings['retentionDays'] ?? '7');
     } catch (e) {
@@ -204,9 +204,9 @@ class UserModel extends Equatable {
     if (tier == 'pro') return true;
     if (tier == 'plus') {
       final plusThemes = ['ocean', 'forest', 'sunset', 'midnight', 'rose'];
-      return themeName == 'light' || 
-             themeName == 'dark' || 
-             themeName == 'amoled' || 
+      return themeName == 'light' ||
+             themeName == 'dark' ||
+             themeName == 'amoled' ||
              plusThemes.contains(themeName);
     }
     return ['light', 'dark', 'amoled'].contains(themeName);
@@ -227,10 +227,10 @@ class UserModel extends Equatable {
   /// Get user's status text
   String getStatusText() {
     if (isOnline) return 'Online';
-    
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     if (lastSeen.isAfter(today)) {
       return 'Last seen today at ${_formatTime(lastSeen)}';
     } else if (lastSeen.isAfter(today.subtract(const Duration(days: 1)))) {

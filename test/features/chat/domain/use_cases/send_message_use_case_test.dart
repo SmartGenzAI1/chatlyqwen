@@ -8,6 +8,7 @@
 /// rate limiting, encryption errors, and edge cases. The tests use mock repositories
 /// and services to isolate the use case logic and ensure robust error handling.
 
+import 'package:chatly/core/constants/app_constants.dart';
 import 'package:chatly/core/errors/exceptions.dart';
 import 'package:chatly/core/providers/auth_provider.dart';
 import 'package:chatly/core/services/algorithm_service.dart';

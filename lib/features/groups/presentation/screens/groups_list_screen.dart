@@ -56,7 +56,7 @@ class _GroupsListScreenState extends State<GroupsListScreen> {
             lastMessageText: 'Meeting rescheduled to 4PM',
             lastMessageAt: DateTime.now().subtract(const Duration(minutes: 30)),
             lastMessageSenderId: 'user4',
-            createdAt: DateTime.now().subtract(const Duration(weeks: 2)),
+            createdAt: DateTime.now().subtract(const Duration(days: 14)),
             isGroup: true,
             maxParticipants: 25,
             createdBy: 'user1',
@@ -393,7 +393,6 @@ class _GroupsListScreenState extends State<GroupsListScreen> {
                 CustomButton(
                   text: 'Create Group',
                   onPressed: _handleCreateGroup,
-                  icon: Icons.group_add,
                 ),
               if (!_showCreateGroupOption)
                 CustomButton(

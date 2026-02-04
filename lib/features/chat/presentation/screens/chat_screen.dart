@@ -11,6 +11,7 @@
 
 import 'package:chatly/core/constants/app_constants.dart';
 import 'package:chatly/core/constants/theme_constants.dart';
+import 'package:chatly/core/di/injection_container.dart';
 import 'package:chatly/core/providers/auth_provider.dart';
 import 'package:chatly/core/providers/theme_provider.dart';
 import 'package:chatly/core/utils/handlers/toast_handler.dart';
@@ -20,8 +21,77 @@ import 'package:chatly/core/widgets/chat/typing_indicator.dart';
 import 'package:chatly/data/models/chat_model.dart';
 import 'package:chatly/data/models/message_model.dart';
 import 'package:chatly/data/models/user_model.dart';
+import 'package:chatly/features/chat/domain/use_cases/send_message_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+/// Optimized message list widget that minimizes rebuilds and provides smooth scrolling
+class OptimizedMessageList extends StatefulWidget {
+  final List<MessageModel> messages;
+  final bool showTypingIndicator;
+  final String typingUser;
+  final UserModel otherUser;
+  final String currentUserId;
+  final Function(String, String) onReaction;
+  final Function(String) onSwipeReply;
+  final Function(MessageModel) getDeliveryStatus;
+
+  const OptimizedMessageList({
+    super.key,
+    required this.messages,
+    required this.showTypingIndicator,
+    required this.typingUser,
+    required this.otherUser,
+    required this.currentUserId,
+    required this.onReaction,
+    required this.onSwipeReply,
+    required this.getDeliveryStatus,
+  });
+
+  @override
+  State<OptimizedMessageList> createState() => _OptimizedMessageListState();
+}
+
+class _OptimizedMessageListState extends State<OptimizedMessageList> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      controller: _scrollController,
+      reverse: true,
+      itemCount: widget.messages.length + (widget.showTypingIndicator ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (widget.showTypingIndicator && index == 0) {
+          return Padding(
+            key: const ValueKey('typing_indicator'),
+            padding: const EdgeInsets.all(16.0),
+            child: TypingIndicator(userName: widget.typingUser),
+          );
+        }
+
+        final messageIndex = widget.showTypingIndicator ? index - 1 : index;
+        final message = widget.messages[widget.messages.length - 1 - messageIndex];
+
+        return MessageBubble(
+          key: ValueKey(message.messageId),
+          message: message,
+          currentUser: widget.currentUserId,
+          otherUser: widget.otherUser,
+          onReaction: widget.onReaction,
+          onSwipeReply: widget.onSwipeReply,
+          deliveryStatus: widget.getDeliveryStatus(message),
+        );
+      },
+    );
+  }
+}
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -43,13 +113,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   UserModel? _otherUser;
   AnimationController? _sendAnimationController;
   bool _isSending = false;
+
+  // Use case for proper layered architecture
+  SendMessageUseCase? _sendMessageUseCase;
   
   @override
   void initState() {
     super.initState();
+    _initializeDependencies();
     _loadChatData();
     _setupAnimations();
     _simulateTypingIndicator();
+  }
+
+  void _initializeDependencies() {
+    // Initialize use case with dependency injection
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _sendMessageUseCase = InjectionContainer.instance.createSendMessageUseCase(authProvider);
   }
   
   @override
@@ -183,57 +263,70 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Future<void> _sendMessage() async {
     final messageText = _messageController.text.trim();
     if (messageText.isEmpty) return;
-    
-    // Validate message
-    final message = MessageModel(
-      messageId: MessageModel.generateId(),
-      chatId: widget.chatId,
-      senderId: 'user1', // Current user ID
-      text: messageText,
-      timestamp: DateTime.now(),
-      readBy: ['user1'],
-      expiresAt: DateTime.now().add(const Duration(days: 7)),
-    );
-    
-    final errors = message.validate(maxLength: 500);
-    if (errors.isNotEmpty) {
-      ToastHandler.showError(context, errors.first);
-      return;
-    }
-    
+
     // Show sending animation
     setState(() {
       _isSending = true;
     });
-    
+
     try {
       // Animate send button
       await _sendAnimationController?.forward();
       await _sendAnimationController?.reverse();
-      
-      // Add message to list
-      setState(() {
-        _messages.add(message);
-        _messageController.clear();
-      });
-      
+
+      // Use proper use case if available, otherwise fallback to direct implementation
+      if (_sendMessageUseCase != null) {
+        final message = await _sendMessageUseCase!.execute(
+          chatId: widget.chatId,
+          text: messageText,
+        );
+
+        // Add message to UI list
+        setState(() {
+          _messages.add(message);
+          _messageController.clear();
+        });
+      } else {
+        // Fallback: Direct implementation (should be replaced with proper DI)
+        final message = MessageModel(
+          messageId: MessageModel.generateId(),
+          chatId: widget.chatId,
+          senderId: 'user1',
+          text: messageText,
+          timestamp: DateTime.now(),
+          readBy: ['user1'],
+          expiresAt: DateTime.now().add(const Duration(days: 7)),
+        );
+
+        final errors = message.validate(maxLength: 500);
+        if (errors.isNotEmpty) {
+          ToastHandler.showError(context, errors.first);
+          return;
+        }
+
+        setState(() {
+          _messages.add(message);
+          _messageController.clear();
+        });
+      }
+
       // Scroll to bottom
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: AppConstants.animationDuration,
         curve: Curves.easeOut,
       );
-      
+
       // Simulate read receipt after delay
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
           setState(() {
             final lastMessage = _messages.last;
-            _messages[_messages.length - 1] = lastMessage.markAsRead('user2');
+            _messages[_messages.length - 1] = _messages.last.markAsRead('user2');
           });
         }
       });
-      
+
       ToastHandler.showSuccess(context, 'Message sent');
     } catch (e) {
       ToastHandler.showError(context, 'Failed to send message: ${e.toString()}');
@@ -262,7 +355,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   String _getDeliveryStatus(MessageModel message) {
     if (message.isDeleted) return 'Deleted';
     if (message.isExpired) return 'Expired';
-    if (message.readBy.contains('user2')) return '✓✓ Read';
+    if (message.readBy.contains(_otherUser?.uid ?? 'user2')) return '✓✓ Read';
     if (message.readBy.contains('user1')) return '✓ Sent';
     return 'Sending...';
   }
@@ -295,37 +388,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
       body: Column(
         children: [
-          // Chat messages list
+          // Chat messages list - optimized to prevent full screen rebuilds
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
                 // In real app, this would refresh messages
                 await Future.delayed(const Duration(seconds: 1));
               },
-              child: ListView.builder(
-                controller: _scrollController,
-                reverse: true,
-                itemCount: _messages.length + (_showTypingIndicator ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (_showTypingIndicator && index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TypingIndicator(userName: _typingUser),
-                    );
-                  }
-                  
-                  final messageIndex = _showTypingIndicator ? index - 1 : index;
-                  final message = _messages[_messages.length - 1 - messageIndex];
-                  
-                  return MessageBubble(
-                    message: message,
-                    currentUser: 'user1',
-                    otherUser: _otherUser!,
-                    onReaction: _handleReaction,
-                    onSwipeReply: _handleSwipeReply,
-                    deliveryStatus: _getDeliveryStatus(message),
-                  );
-                },
+              child: OptimizedMessageList(
+                messages: _messages,
+                showTypingIndicator: _showTypingIndicator,
+                typingUser: _typingUser,
+                otherUser: _otherUser!,
+                currentUserId: 'user1',
+                onReaction: _handleReaction,
+                onSwipeReply: _handleSwipeReply,
+                getDeliveryStatus: _getDeliveryStatus,
               ),
             ),
           ),

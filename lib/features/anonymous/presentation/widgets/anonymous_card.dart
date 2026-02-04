@@ -81,13 +81,6 @@ class _AnonymousCardState extends State<AnonymousCard> with SingleTickerProvider
       child: GestureDetector(
         onTap: _handleTap,
         onLongPress: _handleLongPress,
-        onHover: (value) {
-          if (widget.canInteract) {
-            setState(() {
-              _isHovering = value;
-            });
-          }
-        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           decoration: BoxDecoration(
@@ -227,7 +220,7 @@ class _AnonymousCardState extends State<AnonymousCard> with SingleTickerProvider
   
   Widget _buildConnectButton(ThemeData theme) {
     return AnimatedScale(
-      scale: _animationController,
+      scale: _animationController.value,
       duration: const Duration(milliseconds: 200),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

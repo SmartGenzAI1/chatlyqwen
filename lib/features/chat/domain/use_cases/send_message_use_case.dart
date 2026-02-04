@@ -17,6 +17,7 @@ import 'package:chatly/core/services/encryption_service.dart';
 import 'package:chatly/core/services/moderation_service.dart';
 import 'package:chatly/data/models/chat_model.dart';
 import 'package:chatly/data/models/message_model.dart';
+import 'package:chatly/data/models/user_model.dart';
 import 'package:chatly/data/repositories/chat_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
@@ -122,7 +123,7 @@ class SendMessageUseCase {
       
       throw PermissionException('User is not a participant in this chat');
     } catch (e) {
-      if (e is FirebaseException && e.code == 'not-found') {
+      if (e.toString().contains('not-found') || e.toString().contains('Chat not found')) {
         throw NotFoundException('Chat not found');
       }
       rethrow;

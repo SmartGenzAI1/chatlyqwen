@@ -8,8 +8,13 @@
 /// logs them to Firebase Crashlytics, and displays user-friendly error messages.
 /// It also provides utility functions for handling specific types of errors.
 
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:chatly/core/constants/app_constants.dart';
 import 'package:chatly/core/utils/handlers/toast_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,7 +34,7 @@ class ErrorCatcher extends StatefulWidget {
     FlutterError.onError = (FlutterErrorDetails details) {
       FirebaseCrashlytics.instance.recordFlutterError(details);
     };
-    
+
     PlatformDispatcher.instance.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
@@ -61,14 +66,14 @@ class _ErrorCatcherState extends State<ErrorCatcher> {
   void _handleError(BuildContext context, Object error, StackTrace stack) {
     // Log to Firebase Crashlytics
     FirebaseCrashlytics.instance.recordError(error, stack);
-    
+
     // Show user-friendly error message
     final errorMessage = _getUserFriendlyErrorMessage(error);
-    
+
     if (mounted) {
       ToastHandler.showError(context, errorMessage);
     }
-    
+
     // Log error details in debug mode
     if (AppConstants.enableDebugLogging) {
       print('Error caught: $error');
@@ -105,7 +110,7 @@ class _ErrorCatcherState extends State<ErrorCatcher> {
       return 'Something went wrong. Please try again.';
     }
   }
-  
+
   String _getFirebaseErrorMessage(FirebaseException error) {
     switch (error.code) {
       case 'permission-denied':
@@ -134,6 +139,7 @@ class _ErrorCatcherState extends State<ErrorCatcher> {
         return 'Firebase error: ${error.code}';
     }
   }
+
 }
 
 /// ErrorBoundary widget that catches errors in its subtree
@@ -268,7 +274,7 @@ class ErrorHandler {
       return fallbackValue;
     }
   }
-  
+
   /// Handle async errors with custom handler
   static Future<T?> handleAsyncErrorWithHandler<T>(
     Future<T> Function() future,
@@ -298,22 +304,18 @@ class ErrorHandler {
   
   /// Handle network connectivity errors
   static void handleNetworkError(BuildContext context) {
-    if (mounted) {
-      ToastHandler.showError(
-        context,
-        'No internet connection. Please check your network and try again.',
-      );
-    }
+    ToastHandler.showError(
+      context,
+      'No internet connection. Please check your network and try again.',
+    );
   }
-  
+
   /// Handle permission errors
   static void handlePermissionError(BuildContext context, String permissionName) {
-    if (mounted) {
-      ToastHandler.showError(
-        context,
-        'Permission denied for $permissionName. Please enable it in settings.',
-      );
-    }
+    ToastHandler.showError(
+      context,
+      'Permission denied for $permissionName. Please enable it in settings.',
+    );
   }
 }
 

@@ -33,20 +33,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD_example_api_key_android',
-    appId: '1:123456789012:android:abcdef1234567890abcdef12',
-    messagingSenderId: '123456789012',
-    projectId: 'chatly-production',
-    storageBucket: 'chatly-production.appspot.com',
+    apiKey: 'AIzaSyBeNKquR8g54HRH2R1yvvAWpt5VEw9PeRc',
+    appId: '1:1064092004983:android:cb3fe93b905fdf82e00c72',
+    messagingSenderId: '1064092004983',
+    projectId: 'run-track-37263',
+    storageBucket: 'run-track-37263.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD_example_api_key_ios',
-    appId: '1:123456789012:ios:0987654321abcdef09876543',
-    messagingSenderId: '123456789012',
-    projectId: 'chatly-production',
-    storageBucket: 'chatly-production.appspot.com',
-    iosClientId: '123456789012-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com',
+    apiKey: 'AIzaSyA_PPadGw5KHwEypGXSW22qrZW9bonXt9w',
+    appId: '1:1064092004983:ios:5c8ffb65f6def63de00c72',
+    messagingSenderId: '1064092004983',
+    projectId: 'run-track-37263',
+    storageBucket: 'run-track-37263.firebasestorage.app',
+    iosClientId: '1064092004983-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com',
     iosBundleId: 'com.chatly.app',
   );
 }

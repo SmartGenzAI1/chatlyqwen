@@ -9,9 +9,11 @@
 /// The screen adapts based on user subscription tier and provides visual feedback
 /// for premium-only features.
 
+import 'package:chatly/core/constants/app_constants.dart';
 import 'package:chatly/core/constants/route_constants.dart';
 import 'package:chatly/core/constants/theme_constants.dart';
 import 'package:chatly/core/providers/auth_provider.dart';
+import 'package:chatly/data/models/user_model.dart';
 import 'package:chatly/core/providers/theme_provider.dart';
 import 'package:chatly/core/utils/handlers/toast_handler.dart';
 import 'package:chatly/core/widgets/common/custom_button.dart';
@@ -194,7 +196,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: _handleLogout,
                     backgroundColor: theme.colorScheme.error.withOpacity(0.1),
                     textColor: theme.colorScheme.error,
-                    icon: Icons.logout,
                   ),
                 ),
                 

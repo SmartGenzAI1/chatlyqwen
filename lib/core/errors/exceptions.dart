@@ -9,6 +9,8 @@
 /// for debugging and user feedback. The exceptions are designed to work
 /// with the global error handling system and Firebase Crashlytics.
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 class ChatlyException implements Exception {
   final String message;
   final String? code;

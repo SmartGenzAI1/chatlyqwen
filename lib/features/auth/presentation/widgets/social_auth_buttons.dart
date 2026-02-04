@@ -29,7 +29,7 @@ class SocialAuthButtons extends StatelessWidget {
         // Google Sign-in button
         _buildSocialButton(
           context,
-          icon: Icons.google,
+          icon: Icons.account_circle,
           label: 'Continue with Google',
           color: const Color(0xFFDB4437),
           onPressed: onGoogleLogin,
@@ -50,7 +50,7 @@ class SocialAuthButtons extends StatelessWidget {
         if (false) // Disabled for now - future feature
           _buildSocialButton(
             context,
-            icon: Icons.whatsapp,
+            icon: Icons.message,
             label: 'Continue with WhatsApp',
             color: const Color(0xFF25D366),
             onPressed: () {},

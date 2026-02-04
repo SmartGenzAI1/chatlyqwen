@@ -82,7 +82,7 @@ class ToastHandler {
   }) {
     Fluttertoast.showToast(
       msg: message,
-      toastLength: Toast.LENGTH_SHORT,
+      toastLength: ToastLength.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 2,
       backgroundColor: backgroundColor,
@@ -98,7 +98,7 @@ class ToastHandler {
   static void showLoading(BuildContext context, String message) {
     Fluttertoast.showToast(
       msg: '$message\n${_getLoadingDots()}',
-      toastLength: Toast.LENGTH_INDEFINITE,
+      toastLength: ToastLength.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
       backgroundColor: Colors.grey[800]!,

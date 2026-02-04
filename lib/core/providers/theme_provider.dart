@@ -24,6 +24,7 @@ class ThemeProvider with ChangeNotifier {
   String get currentThemeName => _currentThemeName;
   Map<String, dynamic> get customThemeColors => _customThemeColors;
   ThemeData get currentTheme => _getCurrentTheme();
+  ThemeData get lightTheme => AppTheme.lightTheme;
   ThemeData get darkTheme => AppTheme.darkTheme;
   
   /// Initialize theme from preferences

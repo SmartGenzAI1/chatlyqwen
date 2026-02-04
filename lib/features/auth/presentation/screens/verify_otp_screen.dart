@@ -7,6 +7,8 @@
 /// It includes a 6-digit OTP input field with auto-focus functionality, countdown timer
 /// for resend capability, and handles the phone verification process with Firebase.
 
+import 'dart:async';
+
 import 'package:chatly/core/constants/route_constants.dart';
 import 'package:chatly/core/providers/auth_provider.dart';
 import 'package:chatly/core/utils/handlers/toast_handler.dart';

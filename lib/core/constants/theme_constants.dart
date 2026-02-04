@@ -66,22 +66,22 @@ class ThemeConstants {
   static const double mediumOpacity = 0.65;
   static const double lowOpacity = 0.35;
   
-  // Shadows
-  static const List<BoxShadow> cardShadow = [
+  // Shadows (non-const due to withOpacity calls)
+  static List<BoxShadow> get cardShadow => [
     BoxShadow(
-      color: Color(0xFF6366F1).withOpacity(0.1),
+      color: const Color(0xFF6366F1).withOpacity(0.1),
       blurRadius: 10,
       spreadRadius: 2,
-      offset: Offset(0, 4),
+      offset: const Offset(0, 4),
     ),
   ];
-  
-  static const List<BoxShadow> elevatedShadow = [
+
+  static List<BoxShadow> get elevatedShadow => [
     BoxShadow(
-      color: Color(0xFF6366F1).withOpacity(0.15),
+      color: const Color(0xFF6366F1).withOpacity(0.15),
       blurRadius: 15,
       spreadRadius: 3,
-      offset: Offset(0, 6),
+      offset: const Offset(0, 6),
     ),
   ];
   

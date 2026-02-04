@@ -19,7 +19,6 @@ class AppTheme {
       brightness: Brightness.light,
       primaryColor: ThemeConstants.primaryIndigo,
       scaffoldBackgroundColor: ThemeConstants.backgroundLight,
-      backgroundColor: ThemeConstants.backgroundLight,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -68,7 +67,7 @@ class AppTheme {
         surface: Colors.white,
         background: ThemeConstants.backgroundLight,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: ThemeConstants.backgroundSurfaceLight,
         elevation: 2,
         margin: const EdgeInsets.all(8),
@@ -144,7 +143,7 @@ class AppTheme {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         tileColor: Colors.transparent,
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: ThemeConstants.backgroundSurfaceLight,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -166,7 +165,6 @@ class AppTheme {
       brightness: Brightness.dark,
       primaryColor: ThemeConstants.primaryIndigo,
       scaffoldBackgroundColor: ThemeConstants.backgroundDark,
-      backgroundColor: ThemeConstants.backgroundDark,
       appBarTheme: const AppBarTheme(
         backgroundColor: ThemeConstants.backgroundDark,
         elevation: 0,
@@ -215,7 +213,7 @@ class AppTheme {
         surface: ThemeConstants.backgroundSurfaceDark,
         background: ThemeConstants.backgroundDark,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: ThemeConstants.backgroundSurfaceDark,
         elevation: 2,
         margin: const EdgeInsets.all(8),
@@ -291,7 +289,7 @@ class AppTheme {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         tileColor: Colors.transparent,
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: ThemeConstants.backgroundSurfaceDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -327,7 +325,6 @@ class AppTheme {
       brightness: Brightness.dark,
       primaryColor: ThemeConstants.primaryIndigo,
       scaffoldBackgroundColor: Colors.black,
-      backgroundColor: Colors.black,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.black,
         elevation: 0,
@@ -364,7 +361,7 @@ class AppTheme {
           color: Colors.white,
         ),
       ),
-      colorScheme: const ColorScheme.dark(
+      colorScheme: ColorScheme.dark(
         primary: ThemeConstants.primaryIndigo,
         secondary: ThemeConstants.secondaryEmerald,
         tertiary: ThemeConstants.accentAmber,
@@ -373,11 +370,11 @@ class AppTheme {
         onSecondary: Colors.white,
         onBackground: Colors.white,
         onSurface: Colors.white,
-        surface: Colors.grey.shade900,
+        surface: const Color(0xFF212121),
         background: Colors.black,
       ),
-      cardTheme: CardTheme(
-        color: Colors.grey.shade900,
+      cardTheme: CardThemeData(
+        color: const Color(0xFF212121), // Using direct color instead of shade900 for const
         elevation: 2,
         margin: const EdgeInsets.all(8),
         shape: RoundedRectangleBorder(
@@ -443,7 +440,6 @@ class AppTheme {
       brightness: Brightness.light,
       primaryColor: primaryColor,
       scaffoldBackgroundColor: backgroundColor,
-      backgroundColor: backgroundColor,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -481,7 +477,7 @@ class AppTheme {
         surface: Colors.white,
         background: backgroundColor,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 2,
         margin: const EdgeInsets.all(8),
